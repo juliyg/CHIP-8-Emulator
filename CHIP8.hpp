@@ -15,7 +15,7 @@ using namespace std;
 class chip8 {
     //Emulation components 
     uint8_t registers[16]{};                
-    uint16_t memory[4096]{};                
+    uint8_t memory[4096]{};                
     uint16_t stack[16];                     
     uint8_t sp{};                            
     uint16_t indreg{};                       
@@ -23,10 +23,10 @@ class chip8 {
     uint16_t opcode{};                      
     uint8_t delay{};                        
     uint8_t sound{};                         
-    uint32_t display[64 * 32]{};
     uint8_t keypad[16]; 
     mt19937 gen; 
     uniform_int_distribution<uint8_t> dist;
+    Graphics display{};
 
 
     //Opcode method declarations, to be defined in CHIP.cpp 
@@ -79,6 +79,7 @@ class chip8 {
     void op_FX33();
     void op_FX55(); 
     void op_FX65(); 
+    void decodeExe(uint16_t opcode); 
            
 //public methods 
 public: 

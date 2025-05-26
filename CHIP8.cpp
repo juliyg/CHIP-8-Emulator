@@ -1,5 +1,6 @@
 #include <CHIP8.hpp>
-#include <iostream> 
+#include <graphics.hpp>
+#include <graphics.cpp>
 using namespace std;
 
 //Execute machine lanague subroutine at address NNN (does nothing in emulator)
@@ -7,7 +8,18 @@ void chip8::op_0NNN() {}
 
 //Clear the screen
 void chip8::op_00E0() {
-    
+    uint8_t *pixels = display.accessPixels(); 
+    int pitch = display.getPitch(); 
+
+    for(int i = 0; i < 64; i++) {
+        for(int j = 0; j < 32; j++) {
+            pixels[4*i + j * pitch] = 0;
+            pixels[4*i+1 + j * pitch] = 0;
+            pixels[4*i+2 + j * pitch] = 0;
+            pixels[4*i+3 + j * pitch] = 255;
+        }
+    }
+    display.updatePixels(); 
 }
 
 //Return from a subroutine
@@ -261,22 +273,95 @@ void chip8::op_FX65() {
 
 }
 
-chip8::chip8() {
-    random_device rd; 
-    gen = mt19937(rd());
-    dist = uniform_int_distribution<uint8_t> (0,255u); 
+chip8::chip8() : display() {
+    initialize(); 
 }
 
 void chip8::initialize() {
+    random_device rd; 
+    gen = mt19937(rd());
+    dist = uniform_int_distribution<uint8_t> (0,255u); 
+    pc = 0x0200;
+    uint8_t array[80] = {
+        0xF0, 0x90, 0x90, 0x90, 0xF0, 
+        0x20, 0x60, 0x20, 0x20, 0x70,
+        0xF0, 0x10, 0xF0, 0x80, 0xF0, 
+        0xF0, 0x10, 0xF0, 0x10, 0xF0, 
+        0x90, 0x90, 0xF0, 0x10, 0x10,
+        0xF0, 0x80, 0xF0, 0x10, 0xF0,
+        0xF0, 0x80, 0xF0, 0x90, 0xF0, 
+        0xF0, 0x10, 0x20, 0x40, 0x40, 
+        0xF0, 0x90, 0xF0, 0x90, 0xF0, 
+        0xF0, 0x90, 0xF0, 0x10, 0xF0, 
+        0xF0, 0x90, 0xF0, 0x90, 0x90, 
+        0xE0, 0x90, 0xE0, 0x90, 0xE0, 
+        0xF0, 0x80, 0x80, 0x80, 0xF0, 
+        0xE0, 0x90, 0x90, 0x90, 0xE0, 
+        0xF0, 0x80, 0xF0, 0x80, 0xF0, 
+        0xF0, 0x80, 0xF0, 0x80, 0x80  
+    };
 
-
+    for(uint16_t i = 0x0050; i <= 0x009F; i++) 
+        memory[i] = array[i - 0x0050];     
 }
+
+
+void chip8::decodeExe(uint16_t opcode) {
+    switch(opcode & 0xF000) {
+        case 0x0: 
+            if(opcode==0x00E0) op_00E0(); 
+            else if(opcode==0x00EE) op_00EE();
+            break;
+        case 0x1000: op_1NNN(); break;
+        case 0x2000: op_2NNN(); break;
+        case 0x3000: op_3XNN(); break;
+        case 0x4000: op_4XNN(); break;
+        case 0x5000: op_5XY0(); break;
+        case 0x6000: op_6XNN(); break;
+        case 0x7000: op_7XNN(); break;
+        case 0x8000:
+            switch(opcode & 0x000F) {
+                case 0x0: op_8XY0(); break;
+                case 0x1: op_8XY1(); break;
+                case 0x2: op_8XY2(); break;
+                case 0x3: op_8XY3(); break;
+                case 0x4: op_8XY4(); break;
+                case 0x5: op_8XY5(); break;
+                case 0x6: op_8XY6(); break;
+                case 0x7: op_8XY7(); break;
+                case 0xE: op_8XYE(); break;
+            }
+            break;
+        case 0x9000: op_9XY0(); break;
+        case 0xA000: op_ANNN(); break;
+        case 0xB000: op_BNNN(); break;
+        case 0xC000: op_CXNN(); break;
+        case 0xD000: op_DXYN(); break;
+        case 0xE000: 
+            if((opcode & 0x00FF) == 0x9E) op_EX9E();
+            else if((opcode & 0x00FF) == 0xA1) op_EXA1();
+            break;
+        case 0xF000:
+            switch(opcode & 0x00FF) {
+                case 0x07: op_FX07(); break;
+                case 0x0A: op_FX0A(); break;
+                case 0x15: op_FX15(); break;
+                case 0x18: op_FX18(); break;
+                case 0x1E: op_FX1E(); break;
+                case 0x29: op_FX29(); break;
+                case 0x33: op_FX33(); break;
+                case 0x55: op_FX55(); break;
+                case 0x65: op_FX65(); break;
+            }
+    }
+}
+
 
 // Implements the Fetch -> decode -> execute cycle 
 void chip8::emulateCycle() {
-    //Fetch 
-    //Decode 
-    //Execute 
+    opcode = (memory[pc] << 8u) + memory[pc+1]; 
+    decodeExe(opcode);
+    pc += 2; 
 }
 
 
