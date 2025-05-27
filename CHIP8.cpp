@@ -1,6 +1,5 @@
 #include <CHIP8.hpp>
 #include <graphics.hpp>
-#include <graphics.cpp>
 using namespace std;
 
 //Execute machine lanague subroutine at address NNN (does nothing in emulator)
@@ -208,7 +207,35 @@ void chip8::op_CXNN() {
 //Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
 //Set VF to 01 if any set pixels are changed to unset, and 00 otherwise
 void chip8::op_DXYN() {
+    int Xpos = registers[(opcode & 0x0F00u) >> 8u]; 
+    int Ypos = registers[(opcode & 0x00F0u) >> 4u]; 
 
+    registers[0xF] = 0; 
+    for(int i = 0; i < (opcode & 0xF); i++) {
+        uint8_t spriteByte = memory[indreg + i];
+        for(int j = 0; j < 8; j++) {
+            int Xcur = Xpos + j;
+            int Ycur = Ypos + i;
+            int curBit = (spriteByte >> (7u - j)) & 0x1;
+            if(chip8Screen[(Ycur%32)*64 + Xcur%64] & curBit) registers[0xF] = 1;
+            chip8Screen[(Ycur%32)*64 + Xcur%64] ^= curBit;
+        }
+    }
+
+    int pitch = display.getPitch();
+    uint8_t *framebuffer = display.accessPixels(); 
+
+    for(int i = 0; i < 32; i++) {
+        for(int j = 0; j < 64; j++) {
+            if(chip8Screen[64*i + j]) {
+                framebuffer[pitch*i + 4*j] = 255;
+                framebuffer[pitch*i + 4*j + 1] = 255;
+                framebuffer[pitch*i + 4*j + 2] = 255;
+                framebuffer[pitch*i + 4*j + 3] = 255;
+            }
+        }
+    }
+    display.updatePixels();
 }
 
 //Skip the following instruction if the key corresponding to the hex value currently stored in register VX is pressed
@@ -253,7 +280,8 @@ void chip8::op_FX1E() {
 
 //Set I to the memory address of the sprite data corresponding to the hexadecimal digit stored in register VX
 void chip8::op_FX29() {
-
+    uint8_t VX = registers[(opcode & 0x0F00u) >> 8u];
+    indreg = VX;
 }
 
 //Store the binary-coded decimal equivalent of the value stored in register VX at addresses I, I + 1, and I + 2
@@ -363,6 +391,3 @@ void chip8::emulateCycle() {
     decodeExe(opcode);
     pc += 2; 
 }
-
-
-

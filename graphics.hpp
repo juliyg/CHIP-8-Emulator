@@ -1,5 +1,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <CHIP8.hpp> 
+#include <graphics.hpp>
 
 class Graphics {
     int WINDOW_HEIGHT{}; 

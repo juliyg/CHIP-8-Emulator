@@ -1,3 +1,4 @@
+#include <CHIP8.hpp> 
 #include <graphics.hpp>
 #include <iostream> 
 using namespace std;
@@ -49,4 +50,3 @@ void Graphics::cleanUp() {
 Graphics::~Graphics() {
     cleanUp();
 }
-

@@ -1,6 +1,7 @@
 #include <cstdint> 
 #include <random> 
 #include <stdlib.h>
+#include <graphics.hpp>
 using namespace std;
 
 /* CHIP-8 class definitions 
@@ -24,10 +25,10 @@ class chip8 {
     uint8_t delay{};                        
     uint8_t sound{};                         
     uint8_t keypad[16]; 
+    int chip8Screen[64 * 32];
     mt19937 gen; 
     uniform_int_distribution<uint8_t> dist;
     Graphics display{};
-
 
     //Opcode method declarations, to be defined in CHIP.cpp 
 
