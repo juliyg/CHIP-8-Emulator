@@ -1,7 +1,4 @@
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <CHIP8.hpp> 
-#include <graphics.hpp>
 
 class Graphics {
     int WINDOW_HEIGHT{}; 
@@ -12,13 +9,14 @@ class Graphics {
     SDL_Window *window{}; 
     SDL_Renderer *renderer{}; 
     SDL_Texture *screen{};
-    SDL_Event event{};
 public:
     Graphics();
     SDL_Renderer* getRenderer();
     int getPitch() const;
     void setupDisplay(); 
     uint8_t *accessPixels();
+    void inputBuffer(uint8_t *inputBuffer, SDL_Event keyEvent);
+    void updateScreen();
     void updatePixels();
     void cleanUp(); 
     ~Graphics(); 

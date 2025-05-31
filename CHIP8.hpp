@@ -1,7 +1,7 @@
-#include <cstdint> 
+#include "graphics.hpp"
 #include <random> 
+#include <fstream>
 #include <stdlib.h>
-#include <graphics.hpp>
 using namespace std;
 
 /* CHIP-8 class definitions 
@@ -22,10 +22,11 @@ class chip8 {
     uint16_t indreg{};                       
     uint16_t pc{};                          
     uint16_t opcode{};                      
-    uint8_t delay{};                        
+    uint8_t delay{};  
+    uint8_t soundTimer{};                       
     uint8_t sound{};                         
-    uint8_t keypad[16]; 
-    int chip8Screen[64 * 32];
+    uint8_t keypad[16]{}; 
+    int chip8Screen[64 * 32]{};
     mt19937 gen; 
     uniform_int_distribution<uint8_t> dist;
     Graphics display{};
@@ -85,6 +86,10 @@ class chip8 {
 //public methods 
 public: 
     chip8(); 
+    bool loadROM(const char * filename);
+    void inputBuffer(SDL_Event keyEvent); 
+    void updateDisplay();
     void initialize();
     void emulateCycle();
+    void decrementCounters();
 };

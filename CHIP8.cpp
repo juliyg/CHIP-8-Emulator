@@ -1,24 +1,18 @@
-#include <CHIP8.hpp>
-#include <graphics.hpp>
+#include "CHIP8.hpp"
+#include <SDL3/SDL.h>
+#include <iostream>
 using namespace std;
 
 //Execute machine lanague subroutine at address NNN (does nothing in emulator)
 void chip8::op_0NNN() {}
 
 //Clear the screen
-void chip8::op_00E0() {
-    uint8_t *pixels = display.accessPixels(); 
-    int pitch = display.getPitch(); 
-
-    for(int i = 0; i < 64; i++) {
-        for(int j = 0; j < 32; j++) {
-            pixels[4*i + j * pitch] = 0;
-            pixels[4*i+1 + j * pitch] = 0;
-            pixels[4*i+2 + j * pitch] = 0;
-            pixels[4*i+3 + j * pitch] = 255;
+void chip8::op_00E0() { 
+    for(int j = 0; j < 32; j++) {
+        for(int i = 0; i < 64; i++) {
+            chip8Screen[i + j * 64] = 0;  
         }
     }
-    display.updatePixels(); 
 }
 
 //Return from a subroutine
@@ -33,8 +27,8 @@ void chip8::op_1NNN() {
 
 //Execute subroutine starting at NNN
 void chip8::op_2NNN() {
-    stack[sp] = pc; 
-    ++sp; 
+    stack[sp] = pc;
+    ++sp;
     pc = opcode & 0x0FFFu;
 }
 
@@ -214,28 +208,13 @@ void chip8::op_DXYN() {
     for(int i = 0; i < (opcode & 0xF); i++) {
         uint8_t spriteByte = memory[indreg + i];
         for(int j = 0; j < 8; j++) {
-            int Xcur = Xpos + j;
-            int Ycur = Ypos + i;
+            int Xcur = (Xpos + j) % 64;
+            int Ycur = (Ypos + i) % 32;
             int curBit = (spriteByte >> (7u - j)) & 0x1;
-            if(chip8Screen[(Ycur%32)*64 + Xcur%64] & curBit) registers[0xF] = 1;
-            chip8Screen[(Ycur%32)*64 + Xcur%64] ^= curBit;
+            if(chip8Screen[(Ycur)*64 + Xcur] & curBit) registers[0xF] = 1;
+            chip8Screen[(Ycur)*64 + Xcur] ^= curBit;
         }
     }
-
-    int pitch = display.getPitch();
-    uint8_t *framebuffer = display.accessPixels(); 
-
-    for(int i = 0; i < 32; i++) {
-        for(int j = 0; j < 64; j++) {
-            if(chip8Screen[64*i + j]) {
-                framebuffer[pitch*i + 4*j] = 255;
-                framebuffer[pitch*i + 4*j + 1] = 255;
-                framebuffer[pitch*i + 4*j + 2] = 255;
-                framebuffer[pitch*i + 4*j + 3] = 255;
-            }
-        }
-    }
-    display.updatePixels();
 }
 
 //Skip the following instruction if the key corresponding to the hex value currently stored in register VX is pressed
@@ -255,50 +234,73 @@ void chip8::op_EXA1() {
 
 //Store the current value of the delay timer in register VX
 void chip8::op_FX07() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    registers[X] = delay; 
 }
 
 //Wait for a keypress and store the result in register VX
 void chip8::op_FX0A() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    for(int keyIndex = 0; keyIndex < 16; keyIndex++) {
+        if(keypad[keyIndex]) {
+            registers[X] = keyIndex; 
+            return;
+        }
+    }
+    pc -= 2;
 }
 
 //Set the delay timer to the value of register VX
 void chip8::op_FX15() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    delay = registers[X]; 
 }
 
 //Set the sound timer to the value of register VX
 void chip8::op_FX18() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u;
+    soundTimer = registers[X];
 }
 
 //Add the value stored in register VX to register I
 void chip8::op_FX1E() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u;
+    indreg += registers[X];
 }
 
 //Set I to the memory address of the sprite data corresponding to the hexadecimal digit stored in register VX
 void chip8::op_FX29() {
     uint8_t VX = registers[(opcode & 0x0F00u) >> 8u];
-    indreg = VX;
+    indreg = 0x0050 + VX * 5;
 }
 
 //Store the binary-coded decimal equivalent of the value stored in register VX at addresses I, I + 1, and I + 2
 void chip8::op_FX33() {
-
+    uint8_t VX = registers[(opcode & 0x0F00u) >> 8u]; 
+    uint8_t hund = VX/100;
+    uint8_t tens = (VX - hund*100)/10; 
+    uint8_t ones = (VX - hund*100 - tens*10);
+    memory[indreg] = hund;
+    memory[indreg + 1] = tens;
+    memory[indreg + 2] = ones;
 }
 
 //Store the values of registers V0 to VX inclusive in memory starting at address I
 //I is set to I + X + 1 after operation
 void chip8::op_FX55() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    for(uint8_t V = 0; V <= X; V++) 
+        memory[indreg + V] = registers[V];
+    indreg += X + 1;
 }
 
 //Fill registers V0 to VX inclusive with the values stored in memory starting at address I
 //I is set to I + X + 1 after operation
 void chip8::op_FX65() {
-
+    uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    for(uint8_t V = 0; V <= X; V++) 
+        registers[V] = memory[indreg + V]; 
+    indreg += X + 1;
 }
 
 chip8::chip8() : display() {
@@ -330,7 +332,7 @@ void chip8::initialize() {
     };
 
     for(uint16_t i = 0x0050; i <= 0x009F; i++) 
-        memory[i] = array[i - 0x0050];     
+        memory[i] = array[i - 0x0050]; 
 }
 
 
@@ -384,10 +386,63 @@ void chip8::decodeExe(uint16_t opcode) {
     }
 }
 
+void chip8::inputBuffer(SDL_Event keyEvent) {
+    display.inputBuffer(keypad, keyEvent);
+}
+
+void chip8::updateDisplay() {
+    int pitch = display.getPitch();
+    uint8_t *framebuffer = display.accessPixels(); 
+
+    for(int i = 0; i < 32; i++) {
+        for(int j = 0; j < 64; j++) {
+            if(chip8Screen[64*i + j]) {
+                framebuffer[pitch*i + 4*j] = 255;
+                framebuffer[pitch*i + 4*j + 1] = 255;
+                framebuffer[pitch*i + 4*j + 2] = 255;
+                framebuffer[pitch*i + 4*j + 3] = 255;
+            } else {
+                framebuffer[pitch*i + 4*j] = 255;
+                framebuffer[pitch*i + 4*j + 1] = 0;
+                framebuffer[pitch*i + 4*j + 2] = 0;
+                framebuffer[pitch*i + 4*j + 3] = 0;
+            }
+        }
+    }
+    display.updatePixels();
+    display.updateScreen();
+}
+
+void chip8::decrementCounters() {
+    if(delay > 0) 
+        --delay; 
+    if(soundTimer > 0) 
+        --soundTimer;
+}
 
 // Implements the Fetch -> decode -> execute cycle 
 void chip8::emulateCycle() {
     opcode = (memory[pc] << 8u) + memory[pc+1]; 
-    decodeExe(opcode);
     pc += 2; 
+    decodeExe(opcode);
+}
+
+bool chip8::loadROM(const char* filename) {
+    ifstream input(filename, ifstream::binary); 
+    if(!input) {
+        cerr << "Could not open ROM file!" << endl;
+        return false;
+    }
+    input.seekg(0, input.end);
+    int fileLength = input.tellg();
+    input.seekg(0, input.beg);
+    
+    if(fileLength > (4096 - 0x0200)) {
+        cerr << "ROM cannot fit within emulator memory!" << endl;
+        return false; 
+    }
+
+    input.read(reinterpret_cast<char*>(&memory[0x0200]), fileLength);
+    input.close();
+    return true;
 }
