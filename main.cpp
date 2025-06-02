@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
     SDL_Event event; 
     bool quit = false; 
     auto previousTime = chrono::high_resolution_clock::now(); 
+    auto IPSCounter = chrono::high_resolution_clock::now();
 
     while(!quit) {
         while(SDL_PollEvent(&event) != 0) {
@@ -21,11 +22,17 @@ int main(int argc, char *argv[]) {
             }
             emulator.inputBuffer(event);
         } 
-        emulator.emulateCycle();
-        emulator.updateDisplay();
-        
         auto currentTime = chrono::high_resolution_clock::now(); 
+        auto currentIPS = chrono::high_resolution_clock::now(); 
         chrono::duration<float, milli> deltaTime = currentTime - previousTime;
+        chrono::duration<float, milli> deltaIPSTime = currentIPS - IPSCounter;
+
+        if(deltaIPSTime > 2.25ms) {
+            IPSCounter = currentIPS;
+            emulator.emulateCycle();
+            emulator.updateDisplay();
+        }
+        
         if(deltaTime > 16.67ms) {
             previousTime = currentTime;
             emulator.decrementCounters();

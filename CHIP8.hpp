@@ -24,7 +24,6 @@ class chip8 {
     uint16_t opcode{};                      
     uint8_t delay{};  
     uint8_t soundTimer{};                       
-    uint8_t sound{};                         
     uint8_t keypad[16]{}; 
     int chip8Screen[64 * 32]{};
     mt19937 gen; 

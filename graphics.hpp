@@ -9,6 +9,10 @@ class Graphics {
     SDL_Window *window{}; 
     SDL_Renderer *renderer{}; 
     SDL_Texture *screen{};
+    SDL_AudioStream *stream{};
+    SDL_AudioSpec spec{}; 
+    uint8_t *audio_buf{}; 
+    uint32_t audio_len{}; 
 public:
     Graphics();
     SDL_Renderer* getRenderer();
@@ -19,6 +23,10 @@ public:
     void updateScreen();
     void updatePixels();
     void cleanUp(); 
+    void playSound(uint8_t soundTimer); 
     ~Graphics(); 
 };
 
+//Initialize Audio Subsystem
+//Define default output 
+//Audio Streams

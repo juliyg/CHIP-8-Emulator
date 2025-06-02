@@ -92,6 +92,7 @@ void chip8::op_8XY1() {
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
 
     registers[X] = (VY | VX); 
+    registers[0xF] = 0;
 }
 
 //Set VX to (VX AND VY) 
@@ -101,6 +102,7 @@ void chip8::op_8XY2() {
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
 
     registers[X] = (VY & VX);
+    registers[0xF] = 0;
 }
 
 //Set VX to (VX XOR VY)
@@ -110,6 +112,7 @@ void chip8::op_8XY3() {
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
 
     registers[X] = (VY ^ VX); 
+    registers[0xF] = 0;
 }
 
 //ADD register VY to register VX 
@@ -120,8 +123,8 @@ void chip8::op_8XY4() {
     uint8_t X = (opcode & 0x0F00u) >> 8u;
     uint16_t sum = registers[Y] + registers[X]; 
 
-    registers[0xF] = (sum > 255) ? 1 : 0; 
     registers[X] = sum & 0x00FFu; 
+    registers[0xF] = (sum > 255) ? 1 : 0; 
 }
 
 //Subtract VY from VX 
@@ -130,9 +133,10 @@ void chip8::op_8XY4() {
 void chip8::op_8XY5() {
     uint8_t Y = (opcode & 0x00F0u) >> 4u;
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
+    bool borrow = registers[X] < registers[Y];
 
-    registers[0xF] = (registers[X] < registers[Y]) ? 0 : 1; 
     registers[X] = registers[X] - registers[Y]; 
+    registers[0xF] = (borrow) ? 0 : 1; 
 }
 
 //Store the value of VY right shifted in VX
@@ -141,11 +145,11 @@ void chip8::op_8XY5() {
 void chip8::op_8XY6() {
     uint8_t Y = (opcode & 0x00F0u) >> 4u; 
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
-    uint8_t rsy = registers[Y] >> 1; 
-    unsigned int lsb = registers[Y] & 0x01; 
-    
-    registers[0xF] = lsb;
+    uint8_t rsy = registers[Y] >> 1u; 
+    uint8_t lsb = registers[Y] & 0x01; 
+
     registers[X] = rsy; 
+    registers[0xF] = lsb;
 }
 
 //Set VX to the value of VY minus VX 
@@ -155,8 +159,8 @@ void chip8::op_8XY7() {
     uint8_t Y = (opcode & 0x00F0u) >> 4u;
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
 
-    registers[0xF] = (registers[Y] < registers[X]) ? 0 : 1; 
     registers[X] = registers[Y] - registers[X]; 
+    registers[0xF] = (registers[Y] < registers[X]) ? 0 : 1; 
 }
 
 //Store the value of VY shifted left in VX 
@@ -165,11 +169,11 @@ void chip8::op_8XY7() {
 void chip8::op_8XYE() {
     uint8_t Y = (opcode & 0x00F0u) >> 4u;
     uint8_t X = (opcode & 0x0F00u) >> 8u; 
-    uint8_t lsy = registers[Y] << 1; 
-    unsigned int msb = registers[Y] & 0x80; 
+    uint8_t lsy = registers[Y] << 1u; 
+    uint8_t msb = (registers[Y] & 0x80) >> 7u; 
 
-    registers[0xF] = msb; 
     registers[X] = lsy; 
+    registers[0xF] = msb; 
 }
 
 //Skip the next instruction if VX != VY
@@ -414,10 +418,13 @@ void chip8::updateDisplay() {
 }
 
 void chip8::decrementCounters() {
+    bool on = false;
     if(delay > 0) 
         --delay; 
-    if(soundTimer > 0) 
+    if(soundTimer > 0) {
         --soundTimer;
+        display.playSound(soundTimer);
+    }
 }
 
 // Implements the Fetch -> decode -> execute cycle 
