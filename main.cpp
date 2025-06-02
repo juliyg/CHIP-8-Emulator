@@ -32,6 +32,8 @@ int main(int argc, char *argv[]) {
             emulator.emulateCycle();
             emulator.updateDisplay();
         }
+        emulator.generateAudio();
+        emulator.playSound();
         
         if(deltaTime > 16.67ms) {
             previousTime = currentTime;

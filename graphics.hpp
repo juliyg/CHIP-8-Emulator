@@ -1,8 +1,12 @@
 #include <SDL3/SDL.h>
 
 class Graphics {
-    int WINDOW_HEIGHT{}; 
-    int WINDOW_WIDTH{};
+    int WINDOW_HEIGHT{1080}; 
+    int WINDOW_WIDTH{1980};
+    static const int SAMPLING_RATE{44100};
+    static const int FREQUENCY{441}; 
+    static const int BUFF_LENGTH{2048}; 
+    static const int LENGTH = BUFF_LENGTH * sizeof(float); 
     void *pixels{}; 
     uint8_t *framebuffer{}; 
     int pitch{}; 
@@ -10,9 +14,10 @@ class Graphics {
     SDL_Renderer *renderer{}; 
     SDL_Texture *screen{};
     SDL_AudioStream *stream{};
-    SDL_AudioSpec spec{}; 
-    uint8_t *audio_buf{}; 
-    uint32_t audio_len{}; 
+    SDL_AudioSpec spec{SDL_AUDIO_F32LE, 1, SAMPLING_RATE}; 
+    float audio_buf[BUFF_LENGTH]{}; 
+    float time{}; 
+
 public:
     Graphics();
     SDL_Renderer* getRenderer();
@@ -22,8 +27,9 @@ public:
     void inputBuffer(uint8_t *inputBuffer, SDL_Event keyEvent);
     void updateScreen();
     void updatePixels();
+    void generateAudio(bool on); 
     void cleanUp(); 
-    void playSound(uint8_t soundTimer); 
+    void playSound(bool on); 
     ~Graphics(); 
 };
 

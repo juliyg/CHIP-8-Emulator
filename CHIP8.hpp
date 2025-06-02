@@ -29,6 +29,7 @@ class chip8 {
     mt19937 gen; 
     uniform_int_distribution<uint8_t> dist;
     Graphics display{};
+    bool playAudio{false}; 
 
     //Opcode method declarations, to be defined in CHIP.cpp 
 
@@ -90,5 +91,7 @@ public:
     void updateDisplay();
     void initialize();
     void emulateCycle();
+    void generateAudio();
+    void playSound();
     void decrementCounters();
 };

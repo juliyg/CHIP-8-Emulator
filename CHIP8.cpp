@@ -418,13 +418,20 @@ void chip8::updateDisplay() {
 }
 
 void chip8::decrementCounters() {
-    bool on = false;
     if(delay > 0) 
         --delay; 
     if(soundTimer > 0) {
         --soundTimer;
-        display.playSound(soundTimer);
     }
+}
+
+void chip8::generateAudio() {
+    playAudio = (soundTimer > 0);
+    display.generateAudio(playAudio);
+}
+
+void chip8::playSound() {
+    display.playSound(playAudio); 
 }
 
 // Implements the Fetch -> decode -> execute cycle 
