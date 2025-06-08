@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         chrono::duration<float, milli> deltaTime = currentTime - previousTime;
         chrono::duration<float, milli> deltaIPSTime = currentIPS - IPSCounter;
 
-        if(deltaIPSTime > 2.25ms) {
+        if(deltaIPSTime > 1.5ms) {
             IPSCounter = currentIPS;
             emulator.emulateCycle();
             emulator.updateDisplay();

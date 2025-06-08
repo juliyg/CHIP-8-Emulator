@@ -17,7 +17,9 @@ void chip8::op_00E0() {
 
 //Return from a subroutine
 void chip8::op_00EE() {
+    stack[sp] = 0;
     pc = stack[--sp]; 
+    stack[sp] = 0;
 }
 
 //Jump to address NNN
@@ -402,19 +404,19 @@ void chip8::updateDisplay() {
         for(int j = 0; j < 64; j++) {
             if(chip8Screen[64*i + j]) {
                 framebuffer[pitch*i + 4*j] = 255;
-                framebuffer[pitch*i + 4*j + 1] = 255;
-                framebuffer[pitch*i + 4*j + 2] = 255;
+                framebuffer[pitch*i + 4*j + 1] = 0;
+                framebuffer[pitch*i + 4*j + 2] = 200;
                 framebuffer[pitch*i + 4*j + 3] = 255;
             } else {
                 framebuffer[pitch*i + 4*j] = 255;
-                framebuffer[pitch*i + 4*j + 1] = 0;
-                framebuffer[pitch*i + 4*j + 2] = 0;
-                framebuffer[pitch*i + 4*j + 3] = 0;
+                framebuffer[pitch*i + 4*j + 1] = 25;
+                framebuffer[pitch*i + 4*j + 2] = 25;
+                framebuffer[pitch*i + 4*j + 3] = 25;
             }
         }
     }
     display.updatePixels();
-    display.updateScreen();
+    display.updateScreen(registers, stack, pc);
 }
 
 void chip8::decrementCounters() {
