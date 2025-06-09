@@ -1,5 +1,6 @@
 #include "CHIP8.hpp"
 #include <SDL3/SDL.h>
+#include <fstream>
 #include <iostream>
 using namespace std;
 
