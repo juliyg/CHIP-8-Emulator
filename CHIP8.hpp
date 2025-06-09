@@ -1,7 +1,5 @@
 #include "graphics.hpp"
 #include <random> 
-#include <fstream>
-#include <stdlib.h>
 using namespace std;
 
 /* CHIP-8 class definitions 

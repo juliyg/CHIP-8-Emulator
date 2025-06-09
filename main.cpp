@@ -6,6 +6,9 @@
 using namespace std;
 using namespace chrono_literals;
 
+
+// Main loop for the game 
+// Infinite loop keeps window open
 int main(int argc, char *argv[]) {
     chip8 emulator; 
     emulator.loadROM(argv[1]); 
@@ -14,6 +17,7 @@ int main(int argc, char *argv[]) {
     auto previousTime = chrono::high_resolution_clock::now(); 
     auto IPSCounter = chrono::high_resolution_clock::now();
 
+// Infinite loop to keep game open, checks for exit
     while(!quit) {
         while(SDL_PollEvent(&event) != 0) {
             if(event.type == SDL_EVENT_QUIT) {

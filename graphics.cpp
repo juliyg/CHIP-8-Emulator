@@ -9,6 +9,7 @@ using namespace std;
 
 // Graphics class constructor 
 // Intializes: gamePosition, SDL audio and video subsystems, SDL texture formatting, SDL audiostreams
+// Setup window size and game position and stack visualizer position
 Graphics::Graphics() {
     gamePosition.y = WINDOW_HEIGHT/10; 
     gamePosition.x = WINDOW_HEIGHT/20; 
@@ -18,6 +19,7 @@ Graphics::Graphics() {
     debugWidth = WINDOW_WIDTH/7;
     debugXpos = gamePosition.x + gamePosition.w + WINDOW_WIDTH/20; 
     debugYpos = gamePosition.y;
+
     if(!TTF_Init()) {
         cerr << "Could not initialize TTF! SDL_ERROR: " << SDL_GetError() << endl;
     } 
@@ -47,6 +49,7 @@ Graphics::Graphics() {
 
 // Graphics class destructer helper method
 // Destroys: window, renderer, textures, audiostream, SDL overhead
+// Destroys: the stack textures (16 for registers 16 for stack)
 void Graphics::cleanUp() {
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
@@ -130,6 +133,8 @@ void Graphics::playSound(bool on) {
 }
 
 // Input buffer for input keys 
+// Set one key to one upon keypress down
+// Set key to zero if released or another key pressed
 void Graphics::inputBuffer(uint8_t *keyBuff, SDL_Event keyEvent) {
     bool validKey = false;
     int keyIndex = 0; 
@@ -181,6 +186,8 @@ void Graphics::inputBuffer(uint8_t *keyBuff, SDL_Event keyEvent) {
 }
 
 // Debug methods  
+// Update register values in graphics class
+// Create textures for the stack text and register text
 void Graphics::updateHardware(uint8_t registers[16], uint16_t stack[16], uint16_t pc) {
     this->pc = pc;
     SDL_Surface *segment; 

@@ -309,10 +309,13 @@ void chip8::op_FX65() {
     indreg += X + 1;
 }
 
+// Constructor for CHIP8 class, calls initialize()
 chip8::chip8() : display() {
     initialize(); 
 }
 
+// Initializes the basic characters stored in CHIP-8 memory from 0x0 to 0x0200
+// Initialize registers, random device seed, sets pc = 0x0200 to start program
 void chip8::initialize() {
     random_device rd; 
     gen = mt19937(rd());
@@ -341,7 +344,7 @@ void chip8::initialize() {
         memory[i] = array[i - 0x0050]; 
 }
 
-
+// Decodes the opcodes and executes the instruction
 void chip8::decodeExe(uint16_t opcode) {
     switch(opcode & 0xF000) {
         case 0x0: 
@@ -391,11 +394,12 @@ void chip8::decodeExe(uint16_t opcode) {
             }
     }
 }
-
+// Function to inputBuffer located in Graphics class
 void chip8::inputBuffer(SDL_Event keyEvent) {
     display.inputBuffer(keypad, keyEvent);
 }
 
+// Function to update the display, actually draws to the screen
 void chip8::updateDisplay() {
     int pitch = display.getPitch();
     uint8_t *framebuffer = display.accessPixels(); 
@@ -418,7 +422,7 @@ void chip8::updateDisplay() {
     display.updatePixels();
     display.updateScreen(registers, stack, pc);
 }
-
+// Decrement timers
 void chip8::decrementCounters() {
     if(delay > 0) 
         --delay; 
@@ -427,11 +431,13 @@ void chip8::decrementCounters() {
     }
 }
 
+// Generate audio array
 void chip8::generateAudio() {
     playAudio = (soundTimer > 0);
     display.generateAudio(playAudio);
 }
 
+// Take sound from audio array and play it
 void chip8::playSound() {
     display.playSound(playAudio); 
 }
@@ -443,6 +449,7 @@ void chip8::emulateCycle() {
     decodeExe(opcode);
 }
 
+// Read ROM file data and stores into memory
 bool chip8::loadROM(const char* filename) {
     ifstream input(filename, ifstream::binary); 
     if(!input) {
