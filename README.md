@@ -22,7 +22,7 @@ The emulator uses **SDL3** and **SDL3_ttf** for audio output, keyboard input, an
 ### 📦 Dependencies:
 - [SDL3](https://github.com/libsdl-org/SDL)  
 - [SDL3_ttf](https://github.com/libsdl-org/SDL_ttf)
-- Note: On Windows, you'll need to place `SDL3.dll` and `SDL3_ttf.dll` in the same directory as the `chip8.exe` binary to run the emulator.
+- Note: On Windows, you'll need to place `SDL3.dll`, `SDL3_ttf.dll`, and the font .ttf in the same directory as the `chip8.exe` binary to run the emulator.
 
 ### Building and Running 
 To build the emulator, you'll need a C++ compiler, along with the SDL3 and SDL3_ttf development libraries.
