@@ -12,6 +12,10 @@ It supports all 35 official CHIP-8 instructions and includes a basic visual debu
 
 ---
 
+# Gif Demo (slow from GIF quality)
+![CHIP-8 Demo](demo/breakout.gif)
+![CHIP-8 Demo](demo/kaiju.gif)
+
 # How to Build
 The emulator uses **SDL3** and **SDL3_ttf** for audio output, keyboard input, and video display. You’ll need to install these libraries before building.
 
